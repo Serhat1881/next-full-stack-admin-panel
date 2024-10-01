@@ -11,9 +11,6 @@ import { formatCurrency } from './utils';
 
 export async function fetchRevenue() {
   try {
-    // Artificially delay a response for demo purposes.
-    // Don't do this in production :)
-
      console.log('Fetching revenue data...');
      await new Promise((resolve) => setTimeout(resolve, 3000));
 
@@ -169,19 +166,32 @@ export async function fetchCustomers() {
   try {
     const data = await sql<CustomerField>`
       SELECT
-        id,
-        name
+        customers.id,
+        customers.name,
+        customers.email,
+        customers.image_url,
+        COUNT(invoices.id) AS total_invoices,
+        SUM(CASE WHEN invoices.status = 'pending' THEN invoices.amount ELSE 0 END) AS total_pending,
+        SUM(CASE WHEN invoices.status = 'paid' THEN invoices.amount ELSE 0 END) AS total_paid
       FROM customers
-      ORDER BY name ASC
+      LEFT JOIN invoices ON customers.id = invoices.customer_id
+      GROUP BY customers.id, customers.name, customers.email, customers.image_url
+      ORDER BY customers.name ASC
     `;
 
-    const customers = data.rows;
+    const customers = data.rows.map((customer) => ({
+      ...customer,
+      total_pending: formatCurrency(customer.total_pending),
+      total_paid: formatCurrency(customer.total_paid),
+    }));
+
     return customers;
   } catch (err) {
     console.error('Database Error:', err);
-    throw new Error('Failed to fetch all customers.');
+    throw new Error('Failed to fetch customer table.');
   }
 }
+
 
 export async function fetchFilteredCustomers(query: string) {
   try {
@@ -213,5 +223,21 @@ export async function fetchFilteredCustomers(query: string) {
   } catch (err) {
     console.error('Database Error:', err);
     throw new Error('Failed to fetch customer table.');
+  }
+}
+
+
+export async function fetchUsers() {
+  try {
+    const data = await sql`
+      SELECT id, name, email, password FROM users
+      ORDER BY name ASC
+    `;
+
+    const users = data.rows;
+    return users;
+  } catch (err) {
+    console.error('Database Error:', err);
+    throw new Error('Failed to fetch users.');
   }
 }
