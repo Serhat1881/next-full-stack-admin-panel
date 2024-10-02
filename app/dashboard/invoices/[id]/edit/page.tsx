@@ -4,16 +4,23 @@ import { fetchCustomers } from '@/app/lib/data';
 import { fetchInvoiceById } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
 
-export default async function Page({ params }: { params: { id: string } }) {
-    const id = params.id;
-    const [invoice, customers] = await Promise.all([
-        fetchInvoiceById(id),
-        fetchCustomers(),
-      ]);
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
 
-      if (!invoice) {
-        notFound();
-      }
+export default async function Page({ params }: PageProps) {
+  const { id } = params;
+  const [invoice, customers] = await Promise.all([
+    fetchInvoiceById(id),
+    fetchCustomers(),
+  ]);
+
+  if (!invoice) {
+    notFound();
+  }
+
   return (
     <main>
       <Breadcrumbs
