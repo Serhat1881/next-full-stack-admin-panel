@@ -5,7 +5,7 @@ import { lusitana } from '@/app/ui/fonts';
 
 
 export const metadata: Metadata = {
-  title: 'Users | Acme Dashboard',
+  title: 'Users | YTech Dashboard',
 };
 
 export default async function Page({
